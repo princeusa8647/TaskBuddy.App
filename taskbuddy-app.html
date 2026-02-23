@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TaskBuddy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+:root{
+  --bg:#0a0a0f;
+  --surface:#13131a;
+  --surface2:#1c1c27;
+  --surface3:#252535;
+  --border:#2a2a3a;
+  --primary:#6c63ff;
+  --primary-dark:#5548e0;
+  --primary-glow:rgba(108,99,255,0.3);
+  --accent:#ff6b6b;
+  --green:#22c55e;
+  --amber:#f59e0b;
+  --text:#f0f0ff;
+  --text2:#9494b0;
+  --text3:#5a5a78;
+  --card:#16161f;
+  --radius:16px;
+  --radius-sm:10px;
+  --radius-xs:6px;
+}
+
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow:hidden;}
+
+/* ─── PHONE SHELL ─── */
+#app-shell{
+  width:390px;height:844px;
+  margin:auto;
+  position:relative;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+  overflow:hidden;
+  border-radius:40px;
+  box-shadow:0 0 0 12px #1a1a2e,0 0 0 14px #0d0d18,0 30px 80px rgba(0,0,0,0.8);
+}
+@media(max-height:870px){
+  #app-shell{border-radius:0;box-shadow:none;width:100vw;height:100dvh;}
+}
+@media(min-height:871px){
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;}
+}
+
+/* ─── STATUS BAR ─── */
+.status-bar{
+  height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px 0 24px;flex-shrink:0;
+  font-size:12px;font-weight:600;letter-spacing:0.2px;color:var(--text2);
+}
+.status-bar .time{color:var(--text);font-weight:700;font-size:15px;}
+.status-icons{display:flex;gap:4px;align-items:center;}
+.status-icons svg{width:16px;height:16px;fill:var(--text);}
+
+/* ─── SCREEN WRAPPER ─── */
+#screen-wrapper{flex:1;position:relative;overflow:hidden;}
+.screen{
+  position:absolute;inset:0;
+  overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:none;
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1),opacity 0.25s ease;
+}
+.screen::-webkit-scrollbar{display:none;}
+.screen.hidden{display:none;}
+
+/* ─── BOTTOM NAV ─── */
+#bottom-nav{
+  height:82px;background:var(--surface);
+  border-top:1px solid var(--border);
+  display:flex;align-items:flex-start;
+  padding-top:10px;
+  flex-shrink:0;
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  cursor:pointer;padding:4px 0;
+  transition:all 0.2s;
+}
+.nav-item .nav-icon{
+  width:26px;height:26px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:8px;
+  transition:all 0.25s;
+  position:relative;
+}
+.nav-item .nav-label{font-size:10px;font-weight:600;color:var(--text3);transition:color 0.2s;}
+.nav-item.active .nav-icon{background:var(--primary-glow);}
+.nav-item.active .nav-icon svg{fill:var(--primary)!important;stroke:var(--primary)!important;}
+.nav-item.active .nav-label{color:var(--primary);}
+.nav-item:not(.active) .nav-icon svg{fill:var(--text3)!important;stroke:var(--text3)!important;}
+.nav-badge{
+  position:absolute;top:-4px;right:-4px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--accent);color:white;
+  font-size:9px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--bg);
+}
+
+/* ─── TYPOGRAPHY ─── */
+h1{font-size:26px;font-weight:800;letter-spacing:-0.5px;}
+h2{font-size:20px;font-weight:700;}
+h3{font-size:16px;font-weight:700;}
+
+/* ─── INPUTS ─── */
+.input-group{margin-bottom:16px;}
+.input-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block;letter-spacing:0.3px;}
+.input{
+  width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 16px;
+  font-size:15px;color:var(--text);font-family:inherit;
+  outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+}
+.input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow);}
+.input::placeholder{color:var(--text3);}
+select.input{-webkit-appearance:none;appearance:none;cursor:pointer;}
+.input-phone{display:flex;gap:10px;}
+.input-phone .country{
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 14px;
+  font-size:15px;color:var(--text);font-weight:600;
+  white-space:nowrap;cursor:pointer;
+  transition:border-color 0.2s;
+}
+.input-phone .country:focus{border-color:var(--primary);outline:none;}
+
+/* ─── BUTTONS ─── */
+.btn{
+  width:100%;padding:16px;border-radius:var(--radius);
+  font-size:15px;font-weight:700;font-family:inherit;
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all 0.2s;letter-spacing:0.2px;
+}
+.btn-primary{background:var(--primary);color:white;}
+.btn-primary:active{background:var(--primary-dark);transform:scale(0.98);}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);}
+.btn-secondary:active{background:var(--surface3);transform:scale(0.98);}
+.btn-ghost{background:transparent;color:var(--primary);width:auto;padding:0;}
+.btn-sm{padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;width:auto;}
+.btn-danger{background:rgba(255,107,107,0.15);color:var(--accent);border:1.5px solid rgba(255,107,107,0.3);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ─── PAGE HEADER ─── */
+.page-header{
+  padding:16px 20px 12px;
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:10;
+  background:var(--bg);
+}
+.back-btn{
+  width:38px;height:38px;border-radius:var(--radius-sm);
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  transition:all 0.2s;
+}
+.back-btn:active{transform:scale(0.95);}
+.page-header h2{flex:1;font-size:18px;font-weight:700;}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;
+  margin-bottom:12px;
+}
+
+/* ─── TAGS/CHIPS ─── */
+.chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:5px 10px;border-radius:20px;
+  font-size:11px;font-weight:600;
+  background:var(--surface2);color:var(--text2);
+  border:1px solid var(--border);
+  cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.chip.active{background:var(--primary-glow);color:var(--primary);border-color:var(--primary);}
+.chip-scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 0;}
+.chip-scroll::-webkit-scrollbar{display:none;}
+
+/* ─── BADGES ─── */
+.badge{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:3px 8px;border-radius:6px;
+  font-size:10px;font-weight:700;letter-spacing:0.3px;
+}
+.badge-verified{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+.badge-unverified{background:rgba(245,158,11,0.15);color:var(--amber);border:1px solid rgba(245,158,11,0.3);}
+.badge-pending{background:rgba(108,99,255,0.15);color:var(--primary);border:1px solid rgba(108,99,255,0.3);}
+.badge-status{font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;}
+.badge-confirmed{background:rgba(34,197,94,0.15);color:var(--green);}
+.badge-requested{background:rgba(245,158,11,0.15);color:var(--amber);}
+.badge-completed{background:rgba(108,99,255,0.15);color:var(--primary);}
+.badge-quoted{background:rgba(99,179,237,0.15);color:#63b3ed;}
+
+/* ─── STARS ─── */
+.stars{color:var(--amber);font-size:13px;letter-spacing:1px;}
+
+/* ─── AVATAR ─── */
+.avatar{
+  border-radius:50%;object-fit:cover;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:inherit;
+}
+
+/* ─── OTP BOXES ─── */
+.otp-row{display:flex;gap:10px;justify-content:center;margin:24px 0;}
+.otp-box{
+  width:50px;height:58px;background:var(--surface2);
+  border:2px solid var(--border);border-radius:var(--radius-sm);
+  text-align:center;font-size:22px;font-weight:700;color:var(--text);
+  outline:none;transition:border-color 0.2s;
+  font-family:inherit;
+}
+.otp-box:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow);}
+
+/* ─── PROGRESS STEPS ─── */
+.progress-steps{display:flex;gap:6px;padding:0 20px 16px;}
+.step-dot{
+  flex:1;height:4px;border-radius:2px;background:var(--surface3);transition:background 0.3s;
+}
+.step-dot.done{background:var(--primary);}
+
+/* ─── PROVIDER CARD ─── */
+.provider-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;
+  margin-bottom:12px;cursor:pointer;
+  transition:all 0.2s;
+  display:flex;gap:14px;align-items:flex-start;
+}
+.provider-card:active{transform:scale(0.98);border-color:var(--primary);}
+.provider-card .pcard-avatar{
+  width:56px;height:56px;border-radius:14px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;
+}
+.provider-card .pcard-info{flex:1;min-width:0;}
+.provider-card .pcard-name{font-size:15px;font-weight:700;margin-bottom:2px;}
+.provider-card .pcard-meta{font-size:12px;color:var(--text2);margin-bottom:6px;}
+.provider-card .pcard-price{font-size:13px;font-weight:700;color:var(--primary);}
+.provider-card .pcard-distance{font-size:11px;color:var(--text3);font-weight:600;}
+.pcard-row{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:var(--border);margin:16px 0;}
+
+/* ─── SECTION LABEL ─── */
+.section-label{
+  font-size:12px;font-weight:700;color:var(--text2);
+  letter-spacing:0.8px;text-transform:uppercase;
+  margin-bottom:12px;
+}
+
+/* ─── SAMPLE GRID ─── */
+.sample-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.sample-img{
+  aspect-ratio:1;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;cursor:pointer;transition:transform 0.2s;
+  overflow:hidden;
+}
+.sample-img:active{transform:scale(0.95);}
+
+/* ─── CHAT BUBBLES ─── */
+.chat-wrap{display:flex;flex-direction:column;gap:4px;padding:16px 16px 0;}
+.bubble-row{display:flex;gap:8px;margin-bottom:4px;}
+.bubble-row.me{flex-direction:row-reverse;}
+.bubble{
+  max-width:72%;padding:10px 14px;border-radius:16px;
+  font-size:14px;line-height:1.5;
+}
+.bubble-row.them .bubble{background:var(--surface2);color:var(--text);border-bottom-left-radius:4px;}
+.bubble-row.me .bubble{background:var(--primary);color:white;border-bottom-right-radius:4px;}
+.bubble-time{font-size:10px;color:var(--text3);align-self:flex-end;margin-bottom:4px;padding:0 4px;}
+.sys-msg{
+  text-align:center;font-size:11px;font-weight:600;color:var(--text3);
+  padding:8px 16px;margin:8px 0;
+}
+.quote-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px;margin:8px 16px;
+  border-left:3px solid var(--primary);
+}
+.quote-card .q-title{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px;letter-spacing:0.3px;}
+.quote-row{display:flex;justify-content:space-between;margin-bottom:6px;}
+.quote-row .q-label{font-size:12px;color:var(--text2);}
+.quote-row .q-val{font-size:13px;font-weight:700;}
+.quote-actions{display:flex;gap:8px;margin-top:12px;}
+.quote-actions .btn{padding:10px;font-size:13px;}
+
+/* ─── JOB CARD ─── */
+.job-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;margin-bottom:12px;
+  cursor:pointer;transition:all 0.2s;
+}
+.job-card:active{transform:scale(0.98);}
+.job-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.job-title{font-size:15px;font-weight:700;}
+.job-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.job-footer{display:flex;gap:8px;align-items:center;margin-top:10px;}
+.job-avatar{width:24px;height:24px;border-radius:50%;font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;}
+
+/* ─── CHAT INPUT BAR ─── */
+.chat-input-bar{
+  padding:12px 16px;background:var(--bg);
+  border-top:1px solid var(--border);
+  display:flex;gap:8px;align-items:center;
+}
+.chat-input{
+  flex:1;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:24px;padding:10px 16px;
+  font-size:14px;color:var(--text);font-family:inherit;outline:none;
+  transition:border-color 0.2s;
+}
+.chat-input:focus{border-color:var(--primary);}
+.chat-input::placeholder{color:var(--text3);}
+.send-btn{
+  width:40px;height:40px;border-radius:50%;background:var(--primary);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;flex-shrink:0;
+}
+.send-btn:active{transform:scale(0.9);}
+
+/* ─── REVIEW ─── */
+.star-rate{display:flex;gap:8px;justify-content:center;margin:16px 0;}
+.star-btn{font-size:36px;cursor:pointer;transition:transform 0.15s;filter:grayscale(1);opacity:0.4;}
+.star-btn.lit{filter:none;opacity:1;}
+.star-btn:hover{transform:scale(1.2);}
+
+/* ─── SAFETY ─── */
+.sos-btn{
+  background:var(--accent);color:white;
+  border:none;border-radius:var(--radius);
+  padding:18px;font-size:16px;font-weight:800;
+  width:100%;cursor:pointer;
+  letter-spacing:0.5px;
+  box-shadow:0 4px 20px rgba(255,107,107,0.4);
+  transition:all 0.2s;
+}
+.sos-btn:active{transform:scale(0.97);box-shadow:0 2px 10px rgba(255,107,107,0.3);}
+
+/* ─── TOGGLE ─── */
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+.toggle-track{
+  width:44px;height:26px;border-radius:13px;background:var(--surface3);
+  position:relative;cursor:pointer;transition:background 0.2s;border:2px solid var(--border);
+}
+.toggle-track.on{background:var(--primary);border-color:var(--primary);}
+.toggle-thumb{
+  width:18px;height:18px;border-radius:50%;background:white;
+  position:absolute;top:2px;left:2px;
+  transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+.toggle-track.on .toggle-thumb{left:22px;}
+
+/* ─── NOTIFICATION TOAST ─── */
+#toast{
+  position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 20px;font-size:13px;font-weight:600;
+  z-index:1000;transition:transform 0.3s;max-width:340px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);
+  display:flex;align-items:center;gap:8px;
+}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ─── LOADING OVERLAY ─── */
+.loader{
+  display:flex;align-items:center;justify-content:center;
+  height:200px;
+}
+.spinner{
+  width:32px;height:32px;border-radius:50%;
+  border:3px solid var(--surface3);
+  border-top-color:var(--primary);
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ─── EMPTY STATE ─── */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:60px 24px;gap:12px;text-align:center;
+}
+.empty-icon{font-size:52px;margin-bottom:4px;}
+.empty-state h3{font-size:18px;font-weight:700;}
+.empty-state p{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* ─── NOTIFICATION ITEM ─── */
+.notif-item{
+  display:flex;gap:12px;padding:14px 20px;
+  border-bottom:1px solid var(--border);cursor:pointer;
+  transition:background 0.15s;
+}
+.notif-item:active{background:var(--surface);}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:5px;}
+.notif-dot.read{background:transparent;border:2px solid var(--border);}
+.notif-text{font-size:13px;line-height:1.5;}
+.notif-time{font-size:11px;color:var(--text3);margin-top:2px;}
+
+/* ─── PROFILE STAT ─── */
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;margin:16px 0;}
+.profile-stat{background:var(--card);padding:14px 8px;text-align:center;}
+.profile-stat .stat-num{font-size:20px;font-weight:800;color:var(--text);}
+.profile-stat .stat-label{font-size:10px;color:var(--text2);font-weight:600;margin-top:2px;}
+
+/* ─── MISC ─── */
+.text-muted{color:var(--text2);}
+.text-primary{color:var(--primary);}
+.text-green{color:var(--green);}
+.text-red{color:var(--accent);}
+.fw-bold{font-weight:700;}
+.mt-4{margin-top:16px;}
+.mt-2{margin-top:8px;}
+.px-20{padding:0 20px;}
+.pt-4{padding-top:16px;}
+.pb-safe{padding-bottom:24px;}
+.row{display:flex;align-items:center;gap:8px;}
+.flex-1{flex:1;}
+.just-between{justify-content:space-between;}
+.text-center{text-align:center;}
+.overlay-pill{
+  position:fixed;bottom:102px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:10px 18px;
+  font-size:13px;font-weight:600;color:var(--primary);
+  display:flex;align-items:center;gap:8px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  cursor:pointer;z-index:50;
+  transition:all 0.2s;
+}
+.role-selector{display:flex;gap:10px;margin-top:16px;}
+.role-btn{
+  flex:1;padding:16px;border-radius:var(--radius);
+  border:2px solid var(--border);background:var(--surface2);
+  cursor:pointer;text-align:center;transition:all 0.2s;
+}
+.role-btn.selected{border-color:var(--primary);background:var(--primary-glow);}
+.role-btn .role-emoji{font-size:28px;display:block;margin-bottom:6px;}
+.role-btn .role-name{font-size:13px;font-weight:700;}
+.role-btn .role-desc{font-size:11px;color:var(--text2);margin-top:2px;}
+.search-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);padding:12px 14px;
+  margin-bottom:0;cursor:text;
+  transition:border-color 0.2s;
+}
+.search-bar:focus-within{border-color:var(--primary);}
+.search-bar input{
+  flex:1;background:none;border:none;outline:none;
+  font-size:14px;color:var(--text);font-family:inherit;
+}
+.search-bar input::placeholder{color:var(--text3);}
+
+/* ─── MEETUP BLOCK ─── */
+.meetup-block{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;margin-bottom:12px;
+}
+.meetup-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+.meetup-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--primary-glow);color:var(--primary);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.meetup-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px;}
+.meetup-val{font-size:15px;font-weight:700;}
+</style>
+</head>
+<body>
+<div id="app-shell">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="time" id="clock">9:41</span>
+    <div class="status-icons">
+      <svg viewBox="0 0 24 24"><path d="M1.5 8.5C5.5 4.5 10.5 2.5 12 2.5s6.5 2 10.5 6L21 10c-3-3-5.5-4.5-9-4.5S6 7 3 10L1.5 8.5zm3 3C7 9 9.5 7.5 12 7.5s5 1.5 7.5 3.5L18 12.5C16 11 14 10 12 10s-4 1-6 2.5L4.5 11.5zm3 3C9 13 10.5 12 12 12s3 1 4.5 2L15 15.5c-1-1-2-1.5-3-1.5s-2 .5-3 1.5L7.5 14.5zM12 17a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </div>
+  </div>
+
+  <!-- Screen Wrapper -->
+  <div id="screen-wrapper">
+    <!-- All screens injected by JS -->
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav id="bottom-nav" class="hidden">
+    <div class="nav-item active" data-nav="home" onclick="navTo('home')">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item" data-nav="jobs" onclick="navTo('jobs')">
+      <div class="nav-icon" style="position:relative;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        <div class="nav-badge" id="jobs-badge" style="display:none;">2</div>
+      </div>
+      <span class="nav-label">My Jobs</span>
+    </div>
+    <div class="nav-item" data-nav="chat-list" onclick="navTo('chat-list')">
+      <div class="nav-icon" style="position:relative;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <div class="nav-badge" id="chat-badge">1</div>
+      </div>
+      <span class="nav-label">Chats</span>
+    </div>
+    <div class="nav-item" data-nav="profile" onclick="navTo('profile')">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <span class="nav-label">Profile</span>
+    </div>
+  </nav>
+</div>
+
+<!-- Toast -->
+<div id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done!</span>
+</div>
+
+<script>
+// ═══════════════ APP STATE ═══════════════
+const APP = {
+  currentScreen: 'splash',
+  user: null,
+  role: null, // 'customer' | 'provider'
+  otpPhone: '',
+  onboardingStep: 1,
+  selectedProvider: null,
+  selectedJob: null,
+  selectedChat: null,
+  safetyMode: false,
+  jobFilters: { type: 'all', sort: 'nearest' },
+  history: [],
+};
+
+// ═══════════════ MOCK DATA ═══════════════
+const PROVIDERS = [
+  { id:1, name:'Priya Sharma', emoji:'👩', color:'linear-gradient(135deg,#6c63ff,#a855f7)', type:'Writer', verified:true,
+    rating:4.9, reviews:47, distance:'0.8 km', price:'₹8', priceUnit:'per page',
+    city:'Nagpur', area:'Dharampeth', bio:'2nd year BSc student. Specializes in neat handwritten notes, lab records & biology diagrams. Fast and reliable!',
+    expertise:['Lab Records','Diagrams','Notes','Charts'], totalJobs:52, responseRate:96 },
+  { id:2, name:'Rahul Kulkarni', emoji:'👨', color:'linear-gradient(135deg,#f59e0b,#ef4444)', type:'Artist', verified:false,
+    rating:4.2, reviews:18, distance:'1.4 km', price:'₹25', priceUnit:'per diagram',
+    city:'Nagpur', area:'Sadar', bio:'Freelance artist specializing in science diagrams and project illustrations. Clean line art.',
+    expertise:['Diagrams','Charts','Project Art'], totalJobs:23, responseRate:78 },
+  { id:3, name:'Ananya Mishra', emoji:'👩', color:'linear-gradient(135deg,#22c55e,#0ea5e9)', type:'Writer', verified:true,
+    rating:4.7, reviews:31, distance:'2.1 km', price:'₹10', priceUnit:'per page',
+    city:'Nagpur', area:'Civil Lines', bio:'MA Literature student. Expert in handwritten assignments, notes rewriting, and project formatting.',
+    expertise:['Assignments','Notes','Lab Records'], totalJobs:38, responseRate:91 },
+  { id:4, name:'Karan Mehta', emoji:'👦', color:'linear-gradient(135deg,#0ea5e9,#6c63ff)', type:'Artist', verified:true,
+    rating:4.8, reviews:62, distance:'2.8 km', price:'₹20', priceUnit:'per diagram',
+    city:'Nagpur', area:'Ramdaspeth', bio:'BFA final year. Creates detailed anatomical diagrams, chemistry structures, and physics illustrations.',
+    expertise:['Diagrams','Lab Records','Charts'], totalJobs:71, responseRate:98 },
+  { id:5, name:'Sneha Patil', emoji:'👩', color:'linear-gradient(135deg,#ec4899,#f59e0b)', type:'Writer', verified:true,
+    rating:4.5, reviews:24, distance:'3.2 km', price:'₹9', priceUnit:'per page',
+    city:'Nagpur', area:'Laxmi Nagar', bio:'Commerce student. Handles accounts practical files, neat handwriting, and project reports.',
+    expertise:['Assignments','Notes','Charts'], totalJobs:29, responseRate:88 },
+];
+
+const JOBS = [
+  { id:'j1', providerId:1, providerName:'Priya Sharma', providerEmoji:'👩', providerColor:'linear-gradient(135deg,#6c63ff,#a855f7)',
+    type:'Lab Record', subject:'Biology', qty:'15 pages', deadline:'Thu 6 PM',
+    status:'READY_FOR_MEET', price:'₹150', meetup:'City Central Library, Near Main Gate',
+    deliveryDatetime:'Thursday, 6:00 PM', chatId:'c1' },
+  { id:'j2', providerId:3, providerName:'Ananya Mishra', providerEmoji:'👩', providerColor:'linear-gradient(135deg,#22c55e,#0ea5e9)',
+    type:'Assignments', subject:'History', qty:'8 pages', deadline:'Sat 2 PM',
+    status:'CONFIRMED', price:'₹80', meetup:'State Library, Study Room Entrance',
+    deliveryDatetime:'Saturday, 2:00 PM', chatId:'c2' },
+  { id:'j3', providerId:2, providerName:'Rahul Kulkarni', providerEmoji:'👨', providerColor:'linear-gradient(135deg,#f59e0b,#ef4444)',
+    type:'Diagrams', subject:'Physics', qty:'5 diagrams', deadline:'Sun 10 AM',
+    status:'QUOTED', price:'₹125', meetup:'Coffee Day, MG Road',
+    deliveryDatetime:'Sunday, 10:00 AM', chatId:'c3' },
+];
+
+const CHATS = {
+  c1: {
+    jobId:'j1', partner:'Priya Sharma', partnerEmoji:'👩', partnerColor:'linear-gradient(135deg,#6c63ff,#a855f7)',
+    messages:[
+      {id:1, from:'them', text:'Hi! I saw your request for lab records. I can help with that 😊', time:'2:10 PM'},
+      {id:2, from:'me', text:'Yes, 15 pages biology diagrams needed by Friday.', time:'2:12 PM'},
+      {id:3, from:'them', text:'Sure! I\'m available. Let me send you a quote.', time:'2:13 PM'},
+      {id:4, type:'quote', price:'₹150', delivery:'Thursday, 6 PM', meetup:'City Central Library, Near Main Gate', time:'2:15 PM'},
+      {id:5, type:'sys', text:'Deal Confirmed ✓'},
+      {id:6, from:'them', text:'Great! I\'ll start today. Your work will be ready by Thursday morning.', time:'2:18 PM'},
+      {id:7, from:'me', text:'Perfect, thank you! Please message when ready to meet.', time:'2:20 PM'},
+      {id:8, from:'them', text:'Will do! 🙏', time:'2:21 PM'},
+    ]
+  },
+  c2: {
+    jobId:'j2', partner:'Ananya Mishra', partnerEmoji:'👩', partnerColor:'linear-gradient(135deg,#22c55e,#0ea5e9)',
+    messages:[
+      {id:1, from:'them', text:'Hello! I can help with your History assignments.', time:'Yesterday'},
+      {id:2, from:'me', text:'Great, 8 pages needed. Modern India topic.', time:'Yesterday'},
+      {id:4, type:'quote', price:'₹80', delivery:'Saturday, 2 PM', meetup:'State Library, Study Room Entrance', time:'Yesterday'},
+      {id:5, type:'sys', text:'Deal Confirmed ✓'},
+    ]
+  },
+  c3: {
+    jobId:'j3', partner:'Rahul Kulkarni', partnerEmoji:'👨', partnerColor:'linear-gradient(135deg,#f59e0b,#ef4444)',
+    messages:[
+      {id:1, from:'them', text:'Hey, I can do the physics diagrams for you.', time:'10:30 AM'},
+      {id:2, from:'me', text:'How much for 5 circuit diagrams?', time:'10:32 AM'},
+      {id:4, type:'quote', price:'₹125', delivery:'Sunday, 10 AM', meetup:'Coffee Day, MG Road', time:'10:35 AM'},
+    ]
+  }
+};
+
+const SAMPLE_EMOJIS = ['📊','🧬','⚗️','📐','📝','🔬','📈','🌿'];
+
+// ═══════════════ UTILS ═══════════════
+function toast(msg, icon='✅') {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  document.getElementById('toast-icon').textContent = icon;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+setInterval(updateClock, 30000);
+
+function getStatusBadge(status) {
+  const map = {
+    'REQUESTED':'badge-requested','QUOTED':'badge-quoted',
+    'CONFIRMED':'badge-confirmed','IN_PROGRESS':'badge-pending',
+    'READY_FOR_MEET':'badge-confirmed','DELIVERED':'badge-pending',
+    'COMPLETED':'badge-completed'
+  };
+  const label = status.replace('_',' ');
+  return `<span class="badge-status ${map[status]||''}">${label}</span>`;
+}
+
+// ═══════════════ NAVIGATION ═══════════════
+function goTo(screen, params={}) {
+  APP.history.push(APP.currentScreen);
+  renderScreen(screen, params);
+}
+function goBack() {
+  const prev = APP.history.pop();
+  if (prev) renderScreen(prev);
+  else renderScreen('home');
+}
+function navTo(screen) {
+  APP.history = [];
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.nav === screen);
+  });
+  renderScreen(screen);
+}
+
+// ═══════════════ SCREEN RENDERER ═══════════════
+function renderScreen(name, params={}) {
+  APP.currentScreen = name;
+  const wrapper = document.getElementById('screen-wrapper');
+  const nav = document.getElementById('bottom-nav');
+
+  const noNav = ['splash','otp-phone','otp-verify','role-select','customer-setup',
+    'provider-step1','provider-step2','provider-step3','provider-step4','provider-pending',
+    'provider-profile','work-request','chat','meetup','rate-job'];
+
+  nav.classList.toggle('hidden', noNav.includes(name));
+
+  const screens = {
+    splash, 'otp-phone': otpPhone, 'otp-verify': otpVerify, 'role-select': roleSelect,
+    'customer-setup': customerSetup, 'provider-step1': providerStep1,
+    'provider-step2': providerStep2, 'provider-step3': providerStep3,
+    'provider-step4': providerStep4, 'provider-pending': providerPending,
+    home, jobs, 'chat-list': chatList, profile,
+    'provider-profile': providerProfile, 'work-request': workRequest,
+    chat: chatScreen, meetup: meetupScreen, 'rate-job': rateJob,
+    notifications, 'job-detail': jobDetail,
+  };
+
+  if (screens[name]) {
+    wrapper.innerHTML = screens[name](params);
+    attachListeners(name, params);
+  }
+}
+
+// ─── attach screen-specific JS after render ───
+function attachListeners(name, params) {
+  if (name === 'otp-verify') attachOtpListeners();
+  if (name === 'rate-job') attachStarListeners();
+  if (name === 'provider-step3') attachExpertisePicker();
+  if (name === 'chat') {
+    scrollChatToBottom();
+    attachChatSend(params.chatId);
+  }
+}
+
+// ═══════════════ SCREENS ═══════════════
+
+// SPLASH
+function splash() {
+  setTimeout(() => renderScreen('otp-phone'), 1800);
+  return `
+  <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px 24px;">
+    <div style="width:90px;height:90px;border-radius:28px;background:var(--primary);display:flex;align-items:center;justify-content:center;box-shadow:0 20px 60px var(--primary-glow);animation:pulse 2s ease infinite;">
+      <span style="font-size:44px;">✏️</span>
+    </div>
+    <div style="text-align:center;">
+      <h1 style="font-size:36px;font-weight:900;letter-spacing:-1px;">TaskBuddy</h1>
+      <p style="color:var(--text2);margin-top:6px;font-size:15px;">Your campus work companion</p>
+    </div>
+    <div class="spinner" style="position:absolute;bottom:80px;"></div>
+  </div>
+  <style>@keyframes pulse{0%,100%{box-shadow:0 20px 60px var(--primary-glow)}50%{box-shadow:0 20px 90px rgba(108,99,255,0.6)}}</style>`;
+}
+
+// OTP PHONE
+function otpPhone() {
+  return `
+  <div style="padding:40px 24px 24px;display:flex;flex-direction:column;gap:0;min-height:100%;">
+    <div style="margin-bottom:40px;">
+      <div style="width:52px;height:52px;border-radius:16px;background:var(--primary-glow);display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:26px;">📱</div>
+      <h1 style="margin-bottom:8px;">Welcome to<br>TaskBuddy</h1>
+      <p style="color:var(--text2);font-size:14px;line-height:1.6;">Enter your phone number to get started. We'll send you a verification code.</p>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Phone Number</label>
+      <div class="input-phone">
+        <button class="country">🇮🇳 +91</button>
+        <input id="phone-input" class="input" type="tel" inputmode="numeric" maxlength="10" placeholder="98765 43210" style="flex:1;">
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn btn-primary" onclick="submitPhone()">Send OTP →</button>
+    </div>
+    <p style="color:var(--text3);font-size:11px;text-align:center;margin-top:20px;line-height:1.6;">By continuing, you agree to our Terms of Service and Privacy Policy.</p>
+  </div>`;
+}
+
+function submitPhone() {
+  const phone = document.getElementById('phone-input').value.trim();
+  if (phone.length < 10) { toast('Enter a valid 10-digit number', '⚠️'); return; }
+  APP.otpPhone = phone;
+  toast('OTP sent to +91 ' + phone, '📱');
+  goTo('otp-verify');
+}
+
+// OTP VERIFY
+function otpVerify() {
+  return `
+  <div style="padding:32px 24px 24px;">
+    <div class="back-btn" onclick="goBack()" style="margin-bottom:24px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div style="width:52px;height:52px;border-radius:16px;background:var(--primary-glow);display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:26px;">🔐</div>
+    <h2 style="margin-bottom:6px;">Verify your number</h2>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:0;">Code sent to <strong style="color:var(--text);">+91 ${APP.otpPhone}</strong></p>
+    <div class="otp-row">
+      ${[0,1,2,3,4,5].map(i=>`<input class="otp-box" id="otp-${i}" maxlength="1" inputmode="numeric" type="tel">`).join('')}
+    </div>
+    <button class="btn btn-primary" onclick="verifyOtp()">Verify & Continue</button>
+    <p style="text-align:center;font-size:12px;color:var(--text2);margin-top:16px;">Didn't receive it? <span style="color:var(--primary);cursor:pointer;font-weight:600;" onclick="toast('OTP resent!','📱')">Resend OTP</span></p>
+  </div>`;
+}
+
+function attachOtpListeners() {
+  const boxes = document.querySelectorAll('.otp-box');
+  boxes.forEach((box, i) => {
+    box.addEventListener('input', () => {
+      if (box.value && i < 5) boxes[i+1].focus();
+    });
+    box.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !box.value && i > 0) boxes[i-1].focus();
+    });
+  });
+  if (boxes[0]) boxes[0].focus();
+}
+
+function verifyOtp() {
+  const otp = [...document.querySelectorAll('.otp-box')].map(b=>b.value).join('');
+  if (otp.length < 6) { toast('Enter the full 6-digit OTP','⚠️'); return; }
+  toast('Verified! 🎉','✅');
+  setTimeout(() => goTo('role-select'), 600);
+}
+
+// ROLE SELECT
+function roleSelect() {
+  return `
+  <div style="padding:40px 24px 24px;">
+    <h2 style="margin-bottom:6px;">How will you use<br>TaskBuddy?</h2>
+    <p style="color:var(--text2);font-size:13px;">Choose your role. You can always switch later.</p>
+    <div class="role-selector">
+      <div class="role-btn" id="role-customer" onclick="selectRole('customer')">
+        <span class="role-emoji">🎓</span>
+        <div class="role-name">I Need Help</div>
+        <div class="role-desc">Find writers & artists nearby</div>
+      </div>
+      <div class="role-btn" id="role-provider" onclick="selectRole('provider')">
+        <span class="role-emoji">✏️</span>
+        <div class="role-name">I Can Help</div>
+        <div class="role-desc">Earn by writing & drawing</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:24px;" onclick="confirmRole()">Continue →</button>
+  </div>`;
+}
+
+function selectRole(role) {
+  APP.role = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('role-' + role)?.classList.add('selected');
+}
+
+function confirmRole() {
+  if (!APP.role) { toast('Please select a role','⚠️'); return; }
+  if (APP.role === 'customer') goTo('customer-setup');
+  else goTo('provider-step1');
+}
+
+// CUSTOMER SETUP
+function customerSetup() {
+  return `
+  <div style="padding:40px 24px 24px;">
+    <div class="back-btn" onclick="goBack()" style="margin-bottom:24px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <h2 style="margin-bottom:6px;">Quick Setup</h2>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:28px;">Just a few details to get started</p>
+    <div class="input-group">
+      <label class="input-label">Full Name</label>
+      <input id="cs-name" class="input" placeholder="Your full name">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Email (optional)</label>
+      <input id="cs-email" class="input" type="email" placeholder="email@example.com">
+    </div>
+    <div class="input-group">
+      <label class="input-label">State</label>
+      <select id="cs-state" class="input">
+        <option value="">Select State</option>
+        <option selected>Maharashtra</option>
+        <option>Delhi</option><option>Karnataka</option><option>Tamil Nadu</option>
+        <option>West Bengal</option><option>Gujarat</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">District</label>
+      <select id="cs-district" class="input">
+        <option value="">Select District</option>
+        <option selected>Nagpur</option>
+        <option>Mumbai</option><option>Pune</option><option>Nashik</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="margin-top:8px;" onclick="completeCustomerSetup()">Start Exploring ✨</button>
+  </div>`;
+}
+
+function completeCustomerSetup() {
+  const name = document.getElementById('cs-name').value.trim();
+  if (!name) { toast('Enter your name','⚠️'); return; }
+  APP.user = { name, role:'customer', state:'Maharashtra', district:'Nagpur' };
+  toast('Welcome, ' + name + '! 🎉','✅');
+  setTimeout(() => {
+    document.getElementById('jobs-badge').style.display = 'flex';
+    renderScreen('home');
+  }, 600);
+}
+
+// PROVIDER ONBOARDING STEPS
+function providerStep1() {
+  return `
+  <div style="padding:24px 20px;">
+    <div class="back-btn" onclick="goBack()" style="margin-bottom:20px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="progress-steps">${[1,2,3,4].map(i=>`<div class="step-dot ${i<=1?'done':''}"></div>`).join('')}</div>
+    <div style="margin-bottom:24px;">
+      <span class="badge badge-pending" style="margin-bottom:10px;display:inline-flex;">Step 1 of 4</span>
+      <h2>Personal Info</h2>
+    </div>
+    <div class="input-group"><label class="input-label">Full Name</label>
+      <input id="p1-name" class="input" placeholder="Your full name"></div>
+    <div class="input-group"><label class="input-label">Profession</label>
+      <select id="p1-profession" class="input" onchange="toggleStudentFields()">
+        <option value="">Select</option>
+        <option value="student" selected>Student</option>
+        <option value="housewife">Housewife</option>
+        <option value="job">Job</option>
+        <option value="other">Other</option>
+      </select></div>
+    <div id="student-fields">
+      <div class="input-group"><label class="input-label">Institute Name</label>
+        <input id="p1-institute" class="input" placeholder="Your college / school"></div>
+      <div class="input-group"><label class="input-label">Course / Class</label>
+        <input id="p1-course" class="input" placeholder="e.g. BSc 2nd Year"></div>
+    </div>
+    <div class="input-group"><label class="input-label">Email</label>
+      <input id="p1-email" class="input" type="email" placeholder="email@example.com"></div>
+    <div class="input-group"><label class="input-label">City</label>
+      <input id="p1-city" class="input" placeholder="Your city"></div>
+    <div class="input-group"><label class="input-label">Area / Locality</label>
+      <input id="p1-area" class="input" placeholder="e.g. Dharampeth (not full address)"></div>
+    <button class="btn btn-primary" style="margin-top:8px;" onclick="goTo('provider-step2')">Next →</button>
+  </div>`;
+}
+
+function toggleStudentFields() {
+  const v = document.getElementById('p1-profession').value;
+  document.getElementById('student-fields').style.display = v==='student'?'block':'none';
+}
+
+function providerStep2() {
+  return `
+  <div style="padding:24px 20px;">
+    <div class="back-btn" onclick="goBack()" style="margin-bottom:20px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="progress-steps">${[1,2,3,4].map(i=>`<div class="step-dot ${i<=2?'done':''}"></div>`).join('')}</div>
+    <div style="margin-bottom:24px;">
+      <span class="badge badge-pending" style="margin-bottom:10px;display:inline-flex;">Step 2 of 4</span>
+      <h2>Identity Verification</h2>
+      <p style="color:var(--text2);font-size:13px;margin-top:6px;">Safe & secure — only masked ID needed</p>
+    </div>
+    <div style="border:2px dashed var(--border);border-radius:var(--radius);padding:32px;text-align:center;margin-bottom:16px;cursor:pointer;transition:all 0.2s;" onclick="toast('Upload feature available in native app 📱','📎')">
+      <div style="font-size:40px;margin-bottom:8px;">📎</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">Upload ID Proof</div>
+      <div style="font-size:12px;color:var(--text2);">College ID or Masked Aadhaar<br>JPG / PNG / PDF · Max 5MB</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Last 4 Digits of ID (optional)</label>
+      <input class="input" inputmode="numeric" maxlength="4" placeholder="XXXX">
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--surface);border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--border);">
+      <input type="checkbox" id="id-confirm" style="margin-top:3px;accent-color:var(--primary);width:16px;height:16px;flex-shrink:0;">
+      <label for="id-confirm" style="font-size:13px;color:var(--text2);cursor:pointer;line-height:1.5;">I confirm this ID belongs to me and the information is genuine</label>
+    </div>
+    <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--amber);">
+      ⏳ Your ID will be reviewed by admin within 24-48 hours for manual approval.
+    </div>
+    <button class="btn btn-primary" onclick="goTo('provider-step3')">Next →</button>
+  </div>`;
+}
+
+function providerStep3() {
+  return `
+  <div style="padding:24px 20px;">
+    <div class="back-btn" onclick="goBack()" style="margin-bottom:20px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="progress-steps">${[1,2,3,4].map(i=>`<div class="step-dot ${i<=3?'done':''}"></div>`).join('')}</div>
+    <div style="margin-bottom:20px;">
+      <span class="badge badge-pending" style="margin-bottom:10px;display:inline-flex;">Step 3 of 4</span>
+      <h2>Service Setup</h2>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Your Role</label>
+      <div style="display:flex;gap:10px;">
+        <div class="role-btn selected" id="rt-writer" onclick="selectRoleType('writer')" style="padding:12px;">
+          <span class="role-emoji" style="font-size:20px;">✍️</span>
+          <div class="role-name" style="font-size:12px;">Writer</div>
+        </div>
+        <div class="role-btn" id="rt-artist" onclick="selectRoleType('artist')" style="padding:12px;">
+          <span class="role-emoji" style="font-size:20px;">🎨</span>
+          <div class="role-name" style="font-size:12px;">Artist</div>
+        </div>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Expertise (select all that apply)</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="expertise-chips">
+        ${['Diagrams','Lab Records','Assignments','Notes','Charts','Project Art'].map(e=>
+          `<div class="chip" data-exp="${e}" onclick="toggleExpertise(this)">${e}</div>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Starting Price</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input class="input" style="flex:1;" inputmode="decimal" placeholder="e.g. 8" id="p3-price">
+        <select class="input" style="flex:1.2;" id="p3-unit">
+          <option>per page</option>
+          <option>per diagram</option>
+        </select>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Short Bio</label>
+      <textarea class="input" rows="3" style="resize:none;" placeholder="Describe your skills and experience... (max 300 chars)" maxlength="300"></textarea>
+    </div>
+    <div style="border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:16px;cursor:pointer;" onclick="toast('Upload feature in native app 📱','📷')">
+      <div style="font-size:32px;margin-bottom:6px;">📷</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:3px;">Upload 4-5 Sample Images</div>
+      <div style="font-size:11px;color:var(--text2);">Showcase your best handwriting & artwork</div>
+    </div>
+    <button class="btn btn-primary" onclick="goTo('provider-step4')">Next →</button>
+  </div>`;
+}
+
+function selectRoleType(type) {
+  ['writer','artist'].forEach(t => {
+    document.getElementById('rt-'+t)?.classList.toggle('selected', t===type);
+  });
+}
+function attachExpertisePicker() {}
+function toggleExpertise(el) { el.classList.toggle('active'); }
+
+function providerStep4() {
+  return `
+  <div style="padding:24px 20px;">
+    <div class="back-btn" onclick="goBack()" style="margin-bottom:20px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="progress-steps">${[1,2,3,4].map(i=>`<div class="step-dot done"></div>`).join('')}</div>
+    <div style="margin-bottom:20px;">
+      <span class="badge badge-pending" style="margin-bottom:10px;display:inline-flex;">Step 4 of 4</span>
+      <h2>Terms & Conditions</h2>
+    </div>
+    <div style="background:var(--surface);border-radius:var(--radius);padding:16px;height:180px;overflow-y:auto;font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:20px;border:1px solid var(--border);">
+      <strong style="color:var(--text);">TaskBuddy Provider Agreement</strong><br><br>
+      1. You agree to meet customers only in safe, public locations.<br>
+      2. All work must be your own original handwriting/art.<br>
+      3. Payment is received in cash after successful delivery.<br>
+      4. Do not share personal contact information via the app chat.<br>
+      5. Respect all customers regardless of background.<br>
+      6. Report any suspicious behavior immediately using the report feature.<br>
+      7. Fake ID or sample submissions result in permanent ban.<br>
+      8. TaskBuddy is not responsible for offline payment disputes.<br>
+      9. Maintain professionalism in all communications.<br>
+      10. By submitting, you acknowledge admin review is required before your profile goes live.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+      <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+        <input type="checkbox" id="tc1" style="accent-color:var(--primary);width:18px;height:18px;flex-shrink:0;">
+        <span style="font-size:13px;">I agree to the Terms & Conditions</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+        <input type="checkbox" id="tc2" style="accent-color:var(--primary);width:18px;height:18px;flex-shrink:0;">
+        <span style="font-size:13px;">I confirm all provided information is accurate</span>
+      </label>
+    </div>
+    <button class="btn btn-primary" onclick="submitProvider()">Submit for Review 🚀</button>
+    <p style="text-align:center;font-size:11px;color:var(--text3);margin-top:12px;">Approval within 24-48 hours</p>
+  </div>`;
+}
+
+function submitProvider() {
+  const tc1 = document.getElementById('tc1')?.checked;
+  const tc2 = document.getElementById('tc2')?.checked;
+  if (!tc1 || !tc2) { toast('Please accept both checkboxes','⚠️'); return; }
+  toast('Submitted! Awaiting review 🎉','✅');
+  setTimeout(() => goTo('provider-pending'), 600);
+}
+
+function providerPending() {
+  return `
+  <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;gap:20px;">
+    <div style="width:100px;height:100px;border-radius:30px;background:var(--primary-glow);display:flex;align-items:center;justify-content:center;font-size:50px;">⏳</div>
+    <div>
+      <h2 style="margin-bottom:8px;">Under Review</h2>
+      <p style="color:var(--text2);font-size:14px;line-height:1.6;">Your profile is being verified by our admin team. You'll receive a notification once approved (24-48 hrs).</p>
+    </div>
+    <div style="background:var(--surface);border-radius:var(--radius);padding:16px;width:100%;border:1px solid var(--border);">
+      <div style="display:flex;gap:12px;margin-bottom:10px;align-items:center;">
+        <span style="color:var(--green);font-size:16px;">✓</span>
+        <span style="font-size:13px;">Profile information submitted</span>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:10px;align-items:center;">
+        <span style="color:var(--amber);font-size:16px;">⏳</span>
+        <span style="font-size:13px;">ID verification — under review</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <span style="color:var(--amber);font-size:16px;">⏳</span>
+        <span style="font-size:13px;">Sample images — under review</span>
+      </div>
+    </div>
+    <button class="btn btn-secondary" onclick="APP.user={name:'Demo Provider',role:'provider'};renderScreen('home')">Preview as Customer →</button>
+  </div>`;
+}
+
+// HOME
+function home() {
+  const name = APP.user?.name || 'Student';
+  const firstName = name.split(' ')[0];
+  return `
+  <div style="padding-bottom:20px;">
+    <!-- Header -->
+    <div style="padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <p style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:2px;">📍 Nagpur, Maharashtra</p>
+        <h2 style="font-size:20px;">Hello, ${firstName}! 👋</h2>
+      </div>
+      <div onclick="goTo('notifications')" style="width:42px;height:42px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;">
+        🔔
+        <div style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);"></div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div style="padding:0 20px 16px;">
+      <div class="search-bar" onclick="goTo('home')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input placeholder="Search writers, artists..." oninput="filterProviders(this.value)">
+        <span style="font-size:11px;font-weight:600;color:var(--primary);cursor:pointer;">Filter</span>
+      </div>
+    </div>
+
+    <!-- Type Tabs -->
+    <div style="padding:0 20px 12px;">
+      <div style="display:flex;background:var(--surface);border-radius:var(--radius-sm);padding:4px;gap:4px;">
+        <button id="tab-all" class="btn" style="flex:1;padding:10px;font-size:13px;border-radius:8px;background:var(--primary);color:white;" onclick="setTab('all',this)">All</button>
+        <button id="tab-writer" class="btn" style="flex:1;padding:10px;font-size:13px;border-radius:8px;background:transparent;color:var(--text2);" onclick="setTab('writer',this)">✍️ Writers</button>
+        <button id="tab-artist" class="btn" style="flex:1;padding:10px;font-size:13px;border-radius:8px;background:transparent;color:var(--text2);" onclick="setTab('artist',this)">🎨 Artists</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div style="padding:0 20px 16px;">
+      <div class="chip-scroll">
+        <div class="chip active" onclick="setSortFilter('nearest',this)">📍 Nearest</div>
+        <div class="chip" onclick="setSortFilter('rated',this)">⭐ Best Rated</div>
+        <div class="chip" onclick="setSortFilter('verified',this)">✅ Verified Only</div>
+        <div class="chip" onclick="">≤ 2 km</div>
+        <div class="chip" onclick="">⭐ 4.5+</div>
+      </div>
+    </div>
+
+    <!-- Provider List -->
+    <div style="padding:0 20px;" id="provider-list">
+      ${PROVIDERS.map(p => providerCardHTML(p)).join('')}
+    </div>
+  </div>`;
+}
+
+function providerCardHTML(p) {
+  return `
+  <div class="provider-card" onclick="viewProvider(${p.id})">
+    <div class="pcard-avatar" style="background:${p.color};">
+      <span style="font-size:26px;">${p.emoji}</span>
+    </div>
+    <div class="pcard-info">
+      <div class="row" style="gap:6px;margin-bottom:3px;">
+        <div class="pcard-name">${p.name}</div>
+        ${p.verified ? '<span class="badge badge-verified">✓ Verified</span>' : '<span class="badge badge-unverified">Unverified</span>'}
+      </div>
+      <div class="pcard-meta">${p.type} · ${p.expertise.slice(0,2).join(', ')}</div>
+      <div style="display:flex;gap:4px;align-items:center;margin-bottom:6px;">
+        <span class="stars">★</span><span style="font-size:12px;font-weight:700;">${p.rating}</span>
+        <span style="font-size:11px;color:var(--text3);">(${p.reviews})</span>
+      </div>
+      <div class="pcard-row">
+        <div class="pcard-price">${p.price} ${p.priceUnit}</div>
+        <div class="pcard-distance">📍 ${p.distance}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function viewProvider(id) {
+  APP.selectedProvider = PROVIDERS.find(p => p.id === id);
+  goTo('provider-profile');
+}
+
+function setTab(type, el) {
+  document.querySelectorAll('[id^="tab-"]').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--text2)';
+  });
+  el.style.background = 'var(--primary)';
+  el.style.color = 'white';
+  APP.jobFilters.type = type;
+  const list = document.getElementById('provider-list');
+  if (list) {
+    const filtered = PROVIDERS.filter(p => type==='all' || p.type.toLowerCase()===type);
+    list.innerHTML = filtered.map(p => providerCardHTML(p)).join('');
+  }
+}
+function setSortFilter(sort, el) {
+  document.querySelectorAll('.chip-scroll .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+function filterProviders(q) {
+  const list = document.getElementById('provider-list');
+  if (!list) return;
+  const filtered = PROVIDERS.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    p.expertise.some(e => e.toLowerCase().includes(q.toLowerCase()))
+  );
+  list.innerHTML = filtered.map(p => providerCardHTML(p)).join('');
+  if (!filtered.length) list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>No results</h3><p>Try a different search</p></div>`;
+}
+
+// PROVIDER PROFILE
+function providerProfile() {
+  const p = APP.selectedProvider;
+  if (!p) return '<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Not found</h3></div>';
+  return `
+  <div>
+    <!-- Header -->
+    <div style="padding:16px 20px 0;">
+      <div class="back-btn" onclick="goBack()" style="margin-bottom:16px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+    </div>
+
+    <!-- Profile Hero -->
+    <div style="padding:0 20px 20px;display:flex;gap:14px;align-items:flex-start;">
+      <div style="width:72px;height:72px;border-radius:20px;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;">${p.emoji}</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <h2 style="font-size:18px;">${p.name}</h2>
+          ${p.verified ? '<span class="badge badge-verified">✓</span>' : '<span class="badge badge-unverified">!</span>'}
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:6px;">${p.type} · ${p.city}, ${p.area}</p>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="stars">★★★★★</span>
+          <span style="font-size:13px;font-weight:700;">${p.rating}</span>
+          <span style="font-size:12px;color:var(--text2);">${p.reviews} reviews</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div style="padding:0 20px;">
+      <div class="profile-stats">
+        <div class="profile-stat"><div class="stat-num">${p.totalJobs}</div><div class="stat-label">Jobs Done</div></div>
+        <div class="profile-stat"><div class="stat-num">${p.responseRate}%</div><div class="stat-label">Response</div></div>
+        <div class="profile-stat"><div class="stat-num">${p.price}</div><div class="stat-label">${p.priceUnit}</div></div>
+      </div>
+    </div>
+
+    <!-- Bio -->
+    <div style="padding:0 20px 16px;">
+      <p style="font-size:13px;color:var(--text2);line-height:1.7;">${p.bio}</p>
+    </div>
+
+    <!-- Expertise -->
+    <div style="padding:0 20px 20px;">
+      <div class="section-label">Expertise</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${p.expertise.map(e=>`<span class="chip active">${e}</span>`).join('')}
+      </div>
+    </div>
+
+    <div class="divider" style="margin:0 20px;"></div>
+
+    <!-- Samples -->
+    <div style="padding:20px 20px 0;">
+      <div class="section-label">Work Samples</div>
+      <div class="sample-grid">
+        ${SAMPLE_EMOJIS.slice(0,6).map((e,i)=>`
+          <div class="sample-img" style="background:var(--surface2);border:1px solid var(--border);" onclick="toast('Sample preview in native app 🖼️','🎨')">
+            <span style="font-size:28px;">${e}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div style="padding:20px;">
+      <div class="section-label">Reviews</div>
+      ${[
+        {user:'Aditya R.', rating:'★★★★★', text:'Super neat work! Submitted my lab record on time. Will hire again!', time:'2 days ago'},
+        {user:'Shreya M.', rating:'★★★★★', text:'Professional and very organized. Exactly what I needed.', time:'1 week ago'},
+      ].map(r=>`
+        <div class="card" style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <div>
+              <span style="font-size:13px;font-weight:700;">${r.user}</span>
+              <span style="color:var(--amber);font-size:12px;margin-left:8px;">${r.rating}</span>
+            </div>
+            <span style="font-size:11px;color:var(--text3);">${r.time}</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.5;">${r.text}</p>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Actions -->
+    <div style="padding:0 20px 32px;display:flex;gap:10px;">
+      <button class="btn btn-secondary" style="flex:0.4;" onclick="openChat()">💬 Chat</button>
+      <button class="btn btn-primary" style="flex:0.6;" onclick="goTo('work-request')">Request Work →</button>
+    </div>
+  </div>`;
+}
+
+function openChat() {
+  const p = APP.selectedProvider;
+  const chatId = Object.keys(CHATS).find(k => {
+    const job = JOBS.find(j=>j.providerId===p.id);
+    return job && job.chatId===k;
+  }) || 'c1';
+  goTo('chat', {chatId});
+}
+
+// WORK REQUEST
+function workRequest() {
+  const p = APP.selectedProvider;
+  return `
+  <div>
+    <div class="page-header">
+      <div class="back-btn" onclick="goBack()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <h2>New Request</h2>
+    </div>
+    <div style="padding:0 20px 24px;">
+      ${p ? `
+      <div style="display:flex;gap:10px;align-items:center;background:var(--surface);border-radius:var(--radius-sm);padding:12px;margin-bottom:20px;border:1px solid var(--border);">
+        <div style="width:40px;height:40px;border-radius:12px;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:20px;">${p.emoji}</div>
+        <div><div style="font-size:14px;font-weight:700;">${p.name}</div><div style="font-size:11px;color:var(--text2);">${p.type} · ${p.price} ${p.priceUnit}</div></div>
+      </div>` : ''}
+      <div class="input-group">
+        <label class="input-label">Work Type</label>
+        <select class="input">
+          <option>Lab Record</option><option>Assignments</option>
+          <option>Notes Rewriting</option><option>Diagrams</option><option>Charts</option><option>Project Formatting</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Subject</label>
+        <input class="input" placeholder="e.g. Biology, Physics, History">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Description</label>
+        <textarea class="input" rows="3" style="resize:none;" placeholder="Describe what you need in detail..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div class="input-group" style="flex:1;">
+          <label class="input-label">Quantity</label>
+          <input class="input" inputmode="numeric" placeholder="Pages / diagrams">
+        </div>
+        <div class="input-group" style="flex:1;">
+          <label class="input-label">Budget (₹)</label>
+          <input class="input" inputmode="decimal" placeholder="Optional">
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Deadline</label>
+        <input class="input" type="datetime-local" style="color-scheme:dark;">
+      </div>
+      <div style="border:2px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:20px;cursor:pointer;" onclick="toast('Image attach in native app 📎','📎')">
+        <span style="font-size:24px;">📎</span>
+        <div style="font-size:13px;font-weight:600;margin-top:4px;">Attach Reference Images</div>
+        <div style="font-size:11px;color:var(--text2);">Optional — helps provider understand better</div>
+      </div>
+      <button class="btn btn-primary" onclick="sendRequest()">Send Request 🚀</button>
+    </div>
+  </div>`;
+}
+
+function sendRequest() {
+  toast('Request sent to ' + (APP.selectedProvider?.name || 'Provider') + '! 📤','✅');
+  setTimeout(() => {
+    document.getElementById('jobs-badge').style.display = 'flex';
+    navTo('jobs');
+  }, 800);
+}
+
+// JOBS
+function jobs() {
+  return `
+  <div>
+    <div style="padding:16px 20px 12px;">
+      <h2>My Jobs</h2>
+      <p style="font-size:13px;color:var(--text2);margin-top:2px;">Track your active & past work</p>
+    </div>
+    <!-- Filter -->
+    <div style="padding:0 20px 16px;">
+      <div class="chip-scroll">
+        ${['All','Ongoing','Completed','Cancelled'].map((t,i)=>`
+          <div class="chip ${i===0?'active':''}" onclick="filterJobs('${t}',this)">${t}</div>
+        `).join('')}
+      </div>
+    </div>
+    <div id="jobs-list" style="padding:0 20px;">
+      ${JOBS.map(j => jobCardHTML(j)).join('')}
+    </div>
+  </div>`;
+}
+
+function jobCardHTML(j) {
+  return `
+  <div class="job-card" onclick="APP.selectedJob=JOBS.find(x=>x.id==='${j.id}');goTo('job-detail')">
+    <div class="job-header">
+      <div>
+        <div class="job-title">${j.type} — ${j.subject}</div>
+        <div class="job-sub">${j.qty} · Due: ${j.deadline}</div>
+      </div>
+      ${getStatusBadge(j.status)}
+    </div>
+    <div class="divider" style="margin:10px 0;"></div>
+    <div class="row just-between">
+      <div class="row" style="gap:8px;">
+        <div class="job-avatar" style="background:${j.providerColor};">${j.providerEmoji}</div>
+        <span style="font-size:13px;color:var(--text2);">${j.providerName}</span>
+      </div>
+      <span style="font-size:14px;font-weight:800;color:var(--primary);">${j.price}</span>
+    </div>
+  </div>`;
+}
+
+function filterJobs(filter, el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const list = document.getElementById('jobs-list');
+  if (!list) return;
+  const statusMap = {
+    'Ongoing': ['CONFIRMED','IN_PROGRESS','READY_FOR_MEET','QUOTED','REQUESTED'],
+    'Completed': ['COMPLETED'],
+    'Cancelled': ['CANCELLED'],
+  };
+  const filtered = filter==='All' ? JOBS : JOBS.filter(j => statusMap[filter]?.includes(j.status));
+  list.innerHTML = filtered.map(j => jobCardHTML(j)).join('');
+  if (!filtered.length) list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No jobs here</h3><p>Jobs in this category will appear here</p></div>`;
+}
+
+// JOB DETAIL
+function jobDetail() {
+  const j = APP.selectedJob;
+  if (!j) return '<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Job not found</h3></div>';
+  const provider = PROVIDERS.find(p=>p.id===j.providerId);
+
+  const statusSteps = ['REQUESTED','QUOTED','CONFIRMED','IN_PROGRESS','READY_FOR_MEET','DELIVERED','COMPLETED'];
+  const curIdx = statusSteps.indexOf(j.status);
+
+  return `
+  <div>
+    <div class="page-header">
+      <div class="back-btn" onclick="goBack()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <h2>Job Details</h2>
+      ${getStatusBadge(j.status)}
+    </div>
+    <div style="padding:0 20px 24px;">
+      <!-- Provider Info -->
+      <div onclick="viewProvider(${j.providerId})" style="display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;cursor:pointer;">
+        <div style="width:44px;height:44px;border-radius:12px;background:${j.providerColor};display:flex;align-items:center;justify-content:center;font-size:22px;">${j.providerEmoji}</div>
+        <div><div style="font-size:14px;font-weight:700;">${j.providerName}</div><div style="font-size:12px;color:var(--text2);">${provider?.type}</div></div>
+        <div style="margin-left:auto;color:var(--primary);font-size:18px;">›</div>
+      </div>
+
+      <!-- Job Info -->
+      <div class="card">
+        <div class="section-label">Work Details</div>
+        ${[['Type', j.type],['Subject', j.subject],['Quantity', j.qty],['Deadline', j.deadline],['Agreed Price', j.price]].map(([k,v])=>`
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:13px;color:var(--text2);">${k}</span>
+            <span style="font-size:13px;font-weight:600;">${v}</span>
+          </div>
+        `).join('')}
+        <div style="display:flex;justify-content:space-between;padding:8px 0;">
+          <span style="font-size:13px;color:var(--text2);">Meetup</span>
+          <span style="font-size:13px;font-weight:600;max-width:55%;text-align:right;">${j.meetup}</span>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Progress</div>
+        <div style="display:flex;gap:0;overflow-x:auto;scrollbar-width:none;padding:4px 0;">
+          ${statusSteps.map((s,i)=>`
+            <div style="flex-shrink:0;text-align:center;min-width:70px;">
+              <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+                background:${i<curIdx?'var(--green)':i===curIdx?'var(--primary)':'var(--surface3)'};
+                color:${i<=curIdx?'white':'var(--text3)'}">
+                ${i<curIdx?'✓':i+1}
+              </div>
+              <div style="font-size:8px;font-weight:600;color:${i===curIdx?'var(--primary)':'var(--text3)'};line-height:1.3;">${s.replace('_','\n')}</div>
+            </div>
+            ${i<statusSteps.length-1?`<div style="flex:1;height:2px;background:${i<curIdx?'var(--green)':'var(--surface3)'};margin:13px 0 auto;min-width:10px;"></div>`:''}
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" style="flex:1;" onclick="goTo('chat',{chatId:'${j.chatId}'})">💬 Chat</button>
+        ${j.status==='READY_FOR_MEET' ? `<button class="btn btn-primary" style="flex:1;" onclick="APP.selectedJob=JOBS.find(x=>x.id==='${j.id}');goTo('meetup')">📍 Meetup Details</button>` : ''}
+        ${j.status==='DELIVERED' ? `<button class="btn btn-primary" style="flex:1;" onclick="goTo('rate-job')">⭐ Rate Work</button>` : ''}
+        ${j.status==='QUOTED' ? `<button class="btn btn-primary" style="flex:1;" onclick="acceptQuote('${j.id}')">✓ Accept Quote</button>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function acceptQuote(jobId) {
+  const j = JOBS.find(j=>j.id===jobId);
+  if(j) j.status = 'CONFIRMED';
+  toast('Quote accepted! Deal confirmed ✅','✅');
+  setTimeout(() => {
+    APP.selectedJob = JOBS.find(j=>j.id===jobId);
+    goTo('job-detail');
+  }, 600);
+}
+
+// CHAT LIST
+function chatList() {
+  return `
+  <div>
+    <div style="padding:16px 20px 12px;">
+      <h2>Chats</h2>
+    </div>
+    ${Object.entries(CHATS).map(([id,chat])=>{
+      const lastMsg = chat.messages[chat.messages.length-1];
+      const lastText = lastMsg.type==='quote'?'📋 Quote sent':lastMsg.type==='sys'?'✓ '+lastMsg.text:lastMsg.text;
+      const job = JOBS.find(j=>j.chatId===id);
+      return `
+      <div onclick="goTo('chat',{chatId:'${id}'})" style="display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;" onmousedown="this.style.background='var(--surface)'" onmouseup="this.style.background=''" ontouchstart="this.style.background='var(--surface)'" ontouchend="this.style.background=''">
+        <div style="width:50px;height:50px;border-radius:15px;background:${chat.partnerColor};display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${chat.partnerEmoji}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+            <span style="font-size:14px;font-weight:700;">${chat.partner}</span>
+            <span style="font-size:11px;color:var(--text3);">${lastMsg.time||''}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lastText}</div>
+          ${job?`<div style="margin-top:4px;">${getStatusBadge(job.status)}</div>`:''}
+        </div>
+        ${id==='c3'?'<div style="width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:4px;"></div>':''}
+      </div>`;
+    }).join('')}
+    <div class="empty-state" style="padding:30px 24px;">
+      <div class="empty-icon">💬</div>
+      <p style="font-size:12px;color:var(--text3);">Request work from a provider to start chatting</p>
+    </div>
+  </div>`;
+}
+
+// CHAT SCREEN
+function chatScreen(params={}) {
+  const chatId = params.chatId || 'c1';
+  APP.selectedChat = chatId;
+  const chat = CHATS[chatId];
+  const job = JOBS.find(j=>j.chatId===chatId);
+  if (!chat) return '<div class="empty-state"><div class="empty-icon">💬</div><h3>Chat not found</h3></div>';
+
+  return `
+  <div style="display:flex;flex-direction:column;height:100%;">
+    <!-- Header -->
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;flex-shrink:0;">
+      <div class="back-btn" onclick="goBack()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div style="width:38px;height:38px;border-radius:12px;background:${chat.partnerColor};display:flex;align-items:center;justify-content:center;font-size:18px;">${chat.partnerEmoji}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;">${chat.partner}</div>
+        ${job ? `<div style="font-size:11px;color:var(--text2);">${job.type} · ${job.subject}</div>` : ''}
+      </div>
+      ${job ? `<div style="cursor:pointer;" onclick="APP.selectedJob=JOBS.find(j=>j.id==='${job.id}');goTo('job-detail')">${getStatusBadge(job.status)}</div>` : ''}
+    </div>
+
+    <!-- Messages -->
+    <div id="chat-messages" style="flex:1;overflow-y:auto;scrollbar-width:none;padding-bottom:8px;">
+      <div class="chat-wrap">
+        ${chat.messages.map(m => renderMessage(m, job, chatId)).join('')}
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-bar" style="flex-shrink:0;">
+      <input id="chat-input" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat('${chatId}')">
+      <button class="send-btn" onclick="sendChat('${chatId}')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function renderMessage(m, job, chatId) {
+  if (m.type === 'sys') return `<div class="sys-msg">── ${m.text} ──</div>`;
+  if (m.type === 'quote') {
+    const accepted = job && ['CONFIRMED','IN_PROGRESS','READY_FOR_MEET','DELIVERED','COMPLETED'].includes(job.status);
+    return `
+    <div class="quote-card">
+      <div class="q-title">📋 QUOTE FROM ${job?.providerName?.toUpperCase()||'PROVIDER'}</div>
+      <div class="quote-row"><span class="q-label">Price</span><span class="q-val" style="color:var(--primary);font-size:16px;">${m.price}</span></div>
+      <div class="quote-row"><span class="q-label">Delivery</span><span class="q-val">${m.delivery}</span></div>
+      <div class="quote-row"><span class="q-label">Meetup</span><span class="q-val" style="max-width:55%;text-align:right;">${m.meetup}</span></div>
+      ${accepted ? `<div style="color:var(--green);font-size:13px;font-weight:700;text-align:center;padding:10px 0 0;">✅ Deal Accepted</div>` :
+      `<div class="quote-actions">
+        <button class="btn btn-primary" onclick="acceptQuoteFromChat('${chatId}')">Accept ✓</button>
+        <button class="btn btn-danger" onclick="rejectQuote('${chatId}')">Reject ✗</button>
+      </div>`}
+    </div>`;
+  }
+  const isMe = m.from === 'me';
+  return `
+  <div class="bubble-row ${isMe?'me':'them'}">
+    ${!isMe?`<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;align-self:flex-end;">👩</div>`:''}
+    <div>
+      <div class="bubble">${m.text}</div>
+      <div class="bubble-time">${m.time||''}</div>
+    </div>
+  </div>`;
+}
+
+function scrollChatToBottom() {
+  setTimeout(() => {
+    const el = document.getElementById('chat-messages');
+    if (el) el.scrollTop = el.scrollHeight;
+  }, 100);
+}
+
+function attachChatSend(chatId) {
+  // handled inline
+}
+
+function sendChat(chatId) {
+  const input = document.getElementById('chat-input');
+  if (!input || !input.value.trim()) return;
+  const text = input.value.trim();
+  const chat = CHATS[chatId];
+  if (!chat) return;
+  chat.messages.push({ id: Date.now(), from:'me', text, time:'Just now' });
+  input.value = '';
+
+  const wrap = document.querySelector('.chat-wrap');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble-row me';
+  bubble.innerHTML = `<div><div class="bubble">${text}</div><div class="bubble-time">Just now</div></div>`;
+  wrap.appendChild(bubble);
+  const el = document.getElementById('chat-messages');
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+function acceptQuoteFromChat(chatId) {
+  const job = JOBS.find(j=>j.chatId===chatId);
+  if (job) job.status = 'CONFIRMED';
+  toast('Quote accepted! Deal confirmed ✅','✅');
+  // re-render current chat
+  setTimeout(() => renderScreen('chat', {chatId}), 400);
+}
+
+function rejectQuote(chatId) {
+  const job = JOBS.find(j=>j.chatId===chatId);
+  if (job) job.status = 'REQUESTED';
+  toast('Quote rejected','❌');
+  setTimeout(() => renderScreen('chat', {chatId}), 400);
+}
+
+// MEETUP
+function meetupScreen() {
+  const j = APP.selectedJob;
+  return `
+  <div>
+    <div class="page-header">
+      <div class="back-btn" onclick="goBack()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <h2>Meetup Details</h2>
+    </div>
+    <div style="padding:0 20px 32px;">
+      <!-- Status Banner -->
+      <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius);padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">✅</span>
+        <div><div style="font-size:14px;font-weight:700;color:var(--green);">Ready for Meetup!</div>
+        <div style="font-size:12px;color:var(--text2);">Your work is complete. Time to meet.</div></div>
+      </div>
+
+      <!-- Provider -->
+      ${j?`<div style="display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;border:1px solid var(--border);">
+        <div style="width:44px;height:44px;border-radius:12px;background:${j.providerColor};display:flex;align-items:center;justify-content:center;font-size:22px;">${j.providerEmoji}</div>
+        <div><div style="font-size:14px;font-weight:700;">${j.providerName}</div><div style="font-size:12px;color:var(--text2);">${j.type} · ${j.qty}</div></div>
+      </div>`:''}
+
+      <!-- Meetup Info -->
+      <div class="meetup-block">
+        <div class="meetup-row">
+          <div class="meetup-icon">📍</div>
+          <div><div class="meetup-label">Location</div><div class="meetup-val">${j?.meetup||'City Library'}</div></div>
+        </div>
+        <div class="meetup-row">
+          <div class="meetup-icon">🕐</div>
+          <div><div class="meetup-label">Date & Time</div><div class="meetup-val">${j?.deliveryDatetime||'Thursday, 6:00 PM'}</div></div>
+        </div>
+        <div class="meetup-row" style="margin-bottom:0;">
+          <div class="meetup-icon">💰</div>
+          <div><div class="meetup-label">Payment</div><div class="meetup-val">${j?.price||'₹150'} — Cash after delivery</div></div>
+        </div>
+      </div>
+
+      <!-- Safety Mode -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;">
+        <div class="toggle-wrap" style="padding:0 0 12px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">🛡️ Safety Mode</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px;">Emergency SOS during meetup</div>
+          </div>
+          <div class="toggle-track ${APP.safetyMode?'on':''}" id="safety-toggle" onclick="toggleSafety()">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+        <div id="safety-on" style="display:${APP.safetyMode?'block':'none'};">
+          <button class="sos-btn" onclick="callSOS()">🆘 EMERGENCY — CALL 112</button>
+          <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;">Press only in genuine emergencies</p>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:var(--radius);padding:14px;margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px;">💡 Safety Tips</div>
+        ${['Meet only in well-lit public places','Never share home address with strangers','Bring a friend if possible','Trust your instincts — leave if uncomfortable'].map(t=>`<div style="font-size:12px;color:var(--text2);padding:3px 0;">• ${t}</div>`).join('')}
+      </div>
+
+      <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="toast('Report filed — admin notified ⚠️','⚠️')">🚩 Report User</button>
+      <button class="btn btn-primary" onclick="confirmDelivery()">✓ Confirm Delivery Received</button>
+    </div>
+  </div>`;
+}
+
+function toggleSafety() {
+  APP.safetyMode = !APP.safetyMode;
+  const track = document.getElementById('safety-toggle');
+  const panel = document.getElementById('safety-on');
+  if (track) track.classList.toggle('on', APP.safetyMode);
+  if (panel) panel.style.display = APP.safetyMode ? 'block' : 'none';
+  toast(APP.safetyMode ? 'Safety mode ON 🛡️' : 'Safety mode OFF', APP.safetyMode?'🛡️':'🔕');
+}
+
+function callSOS() {
+  toast('Calling emergency services 112... 🚨','🆘');
+  window.location.href = 'tel:112';
+}
+
+function confirmDelivery() {
+  if (APP.selectedJob) APP.selectedJob.status = 'DELIVERED';
+  toast('Delivery confirmed! 🎉','✅');
+  setTimeout(() => goTo('rate-job'), 600);
+}
+
+// RATE JOB
+function rateJob() {
+  const j = APP.selectedJob;
+  return `
+  <div>
+    <div class="page-header">
+      <div class="back-btn" onclick="goBack()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <h2>Rate & Review</h2>
+    </div>
+    <div style="padding:0 20px 32px;text-align:center;">
+      <div style="width:72px;height:72px;border-radius:20px;background:${j?.providerColor||'var(--primary)'};display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;">${j?.providerEmoji||'👩'}</div>
+      <h3 style="margin-bottom:4px;">${j?.providerName||'Provider'}</h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:24px;">${j?.type||'Work'} · ${j?.qty||''} · ${j?.price||''}</p>
+
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px;">How was the work?</div>
+      <div class="star-rate" id="stars">
+        ${[1,2,3,4,5].map(n=>`<span class="star-btn" data-val="${n}" onclick="rateStar(${n})">⭐</span>`).join('')}
+      </div>
+
+      <div style="text-align:left;margin-bottom:16px;">
+        <label class="input-label">Write a Review (optional)</label>
+        <textarea id="review-text" class="input" rows="3" style="resize:none;text-align:left;" placeholder="Share your experience..."></textarea>
+      </div>
+
+      <div style="text-align:left;margin-bottom:24px;">
+        <label class="input-label">Quick Tags</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;" id="review-tags">
+          ${['⏰ On Time','✨ Neat Work','😊 Friendly','⚡ Fast Response'].map(t=>`
+            <div class="chip" onclick="this.classList.toggle('active')">${t}</div>
+          `).join('')}
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="submitReview()">Submit Review ✓</button>
+    </div>
+  </div>`;
+}
+
+let selectedRating = 0;
+function attachStarListeners() { /* inline */ }
+function rateStar(n) {
+  selectedRating = n;
+  document.querySelectorAll('.star-btn').forEach((s,i) => s.classList.toggle('lit', i<n));
+}
+function submitReview() {
+  if (!selectedRating) { toast('Please give a star rating ⭐','⚠️'); return; }
+  if (APP.selectedJob) APP.selectedJob.status = 'COMPLETED';
+  toast('Review submitted! Thank you 🙏','⭐');
+  setTimeout(() => navTo('jobs'), 800);
+}
+
+// PROFILE
+function profile() {
+  const u = APP.user || {name:'Arjun Sharma', role:'customer', district:'Nagpur', state:'Maharashtra'};
+  return `
+  <div>
+    <div style="padding:16px 20px 0;">
+      <h2>Profile</h2>
+    </div>
+    <!-- Profile Card -->
+    <div style="padding:20px;">
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:16px;">
+        <div style="width:64px;height:64px;border-radius:18px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:white;">
+          ${u.name?.[0]||'A'}
+        </div>
+        <div>
+          <h3 style="font-size:18px;">${u.name||'Student'}</h3>
+          <p style="font-size:12px;color:var(--text2);">Customer · ${u.district||'Nagpur'}</p>
+          <span class="badge badge-verified" style="margin-top:4px;display:inline-flex;">✓ Verified</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;">
+        <div style="background:var(--card);padding:14px;text-align:center;">
+          <div style="font-size:20px;font-weight:800;">3</div><div style="font-size:10px;color:var(--text2);margin-top:2px;">Jobs</div>
+        </div>
+        <div style="background:var(--card);padding:14px;text-align:center;">
+          <div style="font-size:20px;font-weight:800;">₹330</div><div style="font-size:10px;color:var(--text2);margin-top:2px;">Spent</div>
+        </div>
+        <div style="background:var(--card);padding:14px;text-align:center;">
+          <div style="font-size:20px;font-weight:800;">4.8</div><div style="font-size:10px;color:var(--text2);margin-top:2px;">Avg. Given</div>
+        </div>
+      </div>
+
+      <!-- Menu -->
+      ${[
+        {icon:'✏️',label:'Edit Profile',action:"toast('Profile editing in native app','✏️')"},
+        {icon:'📍',label:'Update Location',action:"toast('Location update in native app','📍')"},
+        {icon:'🔔',label:'Notifications',action:"goTo('notifications')"},
+        {icon:'🛡️',label:'Safety & Privacy',action:"toast('Safety settings in native app','🛡️')"},
+        {icon:'❓',label:'Help & Support',action:"toast('Help center opening...','❓')"},
+        {icon:'⭐',label:'Rate the App',action:"toast('Thanks for your support! 🙏','⭐')"},
+      ].map(m=>`
+        <div onclick="${m.action}" style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:all 0.15s;" onmousedown="this.style.paddingLeft='4px'" onmouseup="this.style.paddingLeft='0'">
+          <span style="font-size:20px;width:28px;text-align:center;">${m.icon}</span>
+          <span style="flex:1;font-size:14px;font-weight:500;">${m.label}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      `).join('')}
+
+      <div style="margin-top:20px;">
+        <button class="btn btn-danger" onclick="logout()">🚪 Sign Out</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function logout() {
+  APP.user = null;
+  APP.role = null;
+  APP.history = [];
+  toast('Signed out','👋');
+  setTimeout(() => renderScreen('otp-phone'), 500);
+}
+
+// NOTIFICATIONS
+function notifications() {
+  const notifs = [
+    {icon:'✅',text:"Priya Sharma marked your lab record as READY. Meet at City Library tomorrow 6 PM.",time:'2 hrs ago',read:false},
+    {icon:'💬',text:"New message from Ananya Mishra about your History assignment.",time:'5 hrs ago',read:false},
+    {icon:'📋',text:"Rahul Kulkarni sent you a quote: ₹125 for 5 physics diagrams.",time:'Yesterday',read:true},
+    {icon:'⭐',text:"Job completed! Don't forget to review Priya Sharma.",time:'2 days ago',read:true},
+  ];
+  return `
+  <div>
+    <div class="page-header">
+      <div class="back-btn" onclick="goBack()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <h2>Notifications</h2>
+    </div>
+    ${notifs.map(n=>`
+      <div class="notif-item">
+        <div style="font-size:18px;flex-shrink:0;">${n.icon}</div>
+        <div style="flex:1;">
+          <div class="notif-text ${n.read?'text-muted':''}">${n.text}</div>
+          <div class="notif-time">${n.time}</div>
+        </div>
+        <div class="notif-dot ${n.read?'read':''}"></div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+// ═══════════════ BOOT ═══════════════
+renderScreen('splash');
+</script>
+</body>
+</html>
